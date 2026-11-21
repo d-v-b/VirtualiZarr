@@ -1,7 +1,7 @@
 import platform
 import textwrap
 from contextlib import nullcontext
-from pathlib import Path
+from pathlib import PurePosixPath
 from xml.etree import ElementTree as ET
 
 import pytest
@@ -481,7 +481,7 @@ def test_split_groups(hdf5_groups_file, group_path):
     ]
     # check that contents of the split groups dataset match contents of the original dataset
     result_tags = dataset_tags(
-        dmrpp_instance._split_groups(dmrpp_instance.root)[Path(group_path)]
+        dmrpp_instance._split_groups(dmrpp_instance.root)[PurePosixPath(group_path)]
     )
     expected_tags = dataset_tags(dmrpp_instance.find_node_fqn(group_path))
     assert result_tags == expected_tags

@@ -658,6 +658,27 @@ class TestManifestGroupFromHDF:
         manifest_store = manifest_store_from_hdf_url(nested_group_hdf5_url)
         assert len(manifest_store._group["group"]["nested_group"].arrays) == 1
 
+    def test_nested_group_paths_are_posix(self, nested_group_hdf5_url, monkeypatch):
+        # HDF5 group paths are "/"-separated on every platform. Making the
+        # module's ``Path`` a Windows path reproduces, on any OS, a parser that
+        # joins group paths with the OS separator.
+        import pathlib
+
+        import virtualizarr.parsers.hdf.hdf as hdf_module
+
+        monkeypatch.setattr(hdf_module, "Path", pathlib.PureWindowsPath, raising=False)
+        construct = hdf_module._construct_manifest_group
+        groups_opened = []
+
+        def spy(*args, **kwargs):
+            groups_opened.append(kwargs.get("group"))
+            return construct(*args, **kwargs)
+
+        monkeypatch.setattr(hdf_module, "_construct_manifest_group", spy)
+        manifest_store = manifest_store_from_hdf_url(nested_group_hdf5_url)
+        assert groups_opened == [None, "group", "group/nested_group"]
+        assert len(manifest_store._group["group"]["nested_group"].arrays) == 1
+
     def test_nested_data(self, nested_group_hdf5_url):
         manifest_store = manifest_store_from_hdf_url(nested_group_hdf5_url)
         z = zarr.open_group(manifest_store, mode="r", zarr_format=3)
