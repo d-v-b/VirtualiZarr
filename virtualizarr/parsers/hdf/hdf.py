@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import math
 import posixpath
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 from typing import (
     TYPE_CHECKING,
     Callable,
@@ -332,7 +332,7 @@ def _construct_manifest_group(
                 groups[key] = _construct_manifest_group(
                     filepath,
                     reader,
-                    group=str(Path(group) / key) if group is not None else key,
+                    group=str(PurePosixPath(group) / key) if group is not None else key,
                     links_and_references=links_and_references,
                     _seen=seen,
                 )

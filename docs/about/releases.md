@@ -8,6 +8,11 @@
 
 ### Bug fixes
 
+- `HDFParser` now joins nested HDF5 group paths with `/` on every platform. On Windows it used the OS
+  path separator, so any group nested more than one level deep failed to open. `DMRPPParser` group
+  paths are likewise always `/`-separated now.
+  By [Davis Bennett](https://github.com/d-v-b).
+
 ### Documentation
 
 ### Internal changes

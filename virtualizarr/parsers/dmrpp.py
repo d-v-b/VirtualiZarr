@@ -1,6 +1,6 @@
 import io
 import warnings
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 from xml.etree import ElementTree as ET
 
@@ -216,7 +216,11 @@ class DMRParser:
                 f"ignoring group parameter {group!r}"
             )
 
-        group_path = Path("/") if ngroups == 0 else Path("/") / group.removeprefix("/")
+        group_path = (
+            PurePosixPath("/")
+            if ngroups == 0
+            else PurePosixPath("/") / group.removeprefix("/")
+        )
         dataset_element = self._split_groups(self.root).get(group_path)
 
         if dataset_element is None:
@@ -265,7 +269,7 @@ class DMRParser:
 
         return element
 
-    def _split_groups(self, root: ET.Element) -> dict[Path, ET.Element]:
+    def _split_groups(self, root: ET.Element) -> dict[PurePosixPath, ET.Element]:
         """
         Split the input <Dataset> element into several <Dataset> ET.Elements by <Group> name.
         E.g. {"/": <Dataset>, "left": <Dataset>, "right": <Dataset>}
@@ -277,27 +281,27 @@ class DMRParser:
 
         Returns
         -------
-        dict[Path, ET.Element]
+        dict[PurePosixPath, ET.Element]
         """
-        all_groups: dict[Path, ET.Element] = {}
+        all_groups: dict[PurePosixPath, ET.Element] = {}
         dataset_tags = [
             d for d in root if d.tag != "{" + self._NS["dap"] + "}" + "Group"
         ]
         if len(dataset_tags) > 0:
-            all_groups[Path("/")] = ET.Element(root.tag, root.attrib)
-            all_groups[Path("/")].extend(dataset_tags)
-        all_groups.update(self._split_groups_recursive(root, Path("/")))
+            all_groups[PurePosixPath("/")] = ET.Element(root.tag, root.attrib)
+            all_groups[PurePosixPath("/")].extend(dataset_tags)
+        all_groups.update(self._split_groups_recursive(root, PurePosixPath("/")))
         return all_groups
 
     def _split_groups_recursive(
-        self, root: ET.Element, current_path=Path("")
-    ) -> dict[Path, ET.Element]:
-        group_dict: dict[Path, ET.Element] = {}
+        self, root: ET.Element, current_path=PurePosixPath("")
+    ) -> dict[PurePosixPath, ET.Element]:
+        group_dict: dict[PurePosixPath, ET.Element] = {}
         for g in root.iterfind("dap:Group", self._NS):
             group_name = self._get_attrib(g, "name", required=True)
             if group_name is None:
                 continue
-            new_path = current_path / Path(group_name)
+            new_path = current_path / group_name
             dataset_tags = [
                 d for d in g if d.tag != "{" + self._NS["dap"] + "}" + "Group"
             ]
